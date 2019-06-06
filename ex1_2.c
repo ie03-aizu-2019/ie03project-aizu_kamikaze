@@ -40,10 +40,25 @@ int main(){
 	tmp = X[i];
 	X[i] = X[j];
 	X[j] = tmp;
+
+	tmp = Y[i];
+	Y[i] = Y[j];
+	Y[j] = tmp;
+      }
+      else if(X[i] == X[j]){
+	if(Y[i] > Y[j]){
+	  tmp = X[i];
+	  X[i] = X[j];
+	  X[j] = tmp;
+	  
+	  tmp = Y[i];
+	  Y[i] = Y[j];
+	  Y[j] = tmp;
+	}
       }
     }
   }
-
+  
   for(i = 0 ; i < k ; i++){
     printf("x = %.5lf y = %.5lf\n",X[i],Y[i]);
   }

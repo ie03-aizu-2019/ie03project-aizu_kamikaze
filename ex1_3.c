@@ -13,6 +13,7 @@ double calcDistance(double xp1,double yp1,double xq1,double yq1);
 double calcCrossPoint(int point_b, int point_e);
 double dijkstra(int start, int goal);
 
+
 typedef struct{
   double x;
   double y;
@@ -21,21 +22,21 @@ typedef struct{
   int cross;
 }Point;
 
-int N,M,P,Q,i,j,b[QMAX],e[QMAX],k,K,num1,num2,num_cross,num_k,u,via[NMAX][NMAX];
-
-double EPS = 0.00000005,tmp,dijk;
+int N,M,P,Q,i,j,b[QMAX],e[QMAX],k = 0,K,num1,num2,num_cross,num_k;
+  
+double EPS = 0.00000005,tmp,dijk[QMAX],NA[QMAX] = {};
 char S[QMAX][10],D[QMAX][10];
 
-int c,node[NMAX];
-double cost[QMAX] = {},used[QMAX] = {};
+int count,c,m;
+double cost[QMAX] = {},used[QMAX] = {},via[QMAX];
 double Adj[QMAX][QMAX] = {};
-double s,t,detA,dijk;
+double s,t,detA;
 Point point[NMAX];
 Point crosspoint[NMAX];
 
 void calcDetA(int xp1,int yp1,int xq1,int yq1,int xp2, int yp2, int xq2, int yq2){
   detA = (xq1 - xp1)*(yp2 - yq2) + (xq2 - xp2)*(yq1 - yp1);
-  
+      
   s = (double)((yp2 - yq2)*(xp2 - xp1) + (xq2 - xp2)*(yp2 - yp1))/(double)detA;
   t = (double)((yp1 - yq1)*(xp2 - xp1) + (xq1 - xp1)*(yp2 - yp1))/(double)detA;
 
@@ -63,8 +64,9 @@ double calcDistance(double xp1,double yp1,double xq1,double yq1){
 }
 
 
+
 double dijkstra(int start,int goal){
-  int i,point;
+  int point;
   double min;
 
   //printf("%d %d\n",start + 1,goal + 1);
@@ -90,18 +92,15 @@ double dijkstra(int start,int goal){
       //printf("%lf %lf %lf\n",cost[i],Adj[point][i],cost[point]);
       if(cost[i] > Adj[point][i] + cost[point]){
 	cost[i] = Adj[point][i] + cost[point];
-	via[u][i] = point;
+	via[i] = point;
 	//printf("test2 %d %lf %lf %lf\n",i,Adj[point][i],cost[point],cost[i]);
       }
     }
     used[point] = 1;
   }
-  return -1;
 }
 
 int main(){
-
-  int start,goal;
 
   for(i = 0 ; i < 100 ; i++){
     for(j = 0 ; j < 100 ; j++){
@@ -129,18 +128,20 @@ int main(){
     for(j = 0 ; j < M ; j++){
       if(i >= j)continue;
       calcDetA(point[b[i]].x,point[b[i]].y, point[e[i]].x,point[e[i]].y, point[b[j]].x,point[b[j]].y, point[e[j]].x,point[e[j]].y);
-
+      
       if(detA < -EPS || detA > EPS){
 	if((s > 0.000000 && s < 1.000000) && (t > 0.000000 && t < 1.000000)){
-
+	  
 	  crosspoint[k].x = calcCrossPoint(point[b[i]].x,point[e[i]].x);
 	  crosspoint[k].y = calcCrossPoint(point[b[i]].y,point[e[i]].y);
 	  //printf("x = %lf y = %lf\n",crosspoint[k].x,crosspoint[k].y);
+
 	  crosspoint[num_cross].row[0] = b[i];
 	  crosspoint[num_cross].column[0] = e[i];
 	  crosspoint[num_cross].row[1] = b[j];
 	  crosspoint[num_cross].column[1] = e[j];
 
+	  
 	  crosspoint[num_cross].cross = num_cross;
 
 	  num_cross++;
@@ -186,50 +187,45 @@ int main(){
     point[i].y = crosspoint[j].y;
     j++;
 
-    Adj[crosspoint[i].row[0]][crosspoint[i].column[0]] = INF;
-    Adj[crosspoint[i].column[0]][crosspoint[i].row[0]] = INF;
-    
-    Adj[crosspoint[i].row[1]][crosspoint[i].column[1]] = INF;
-    Adj[crosspoint[i].column[1]][crosspoint[i].row[1]] = INF;
 
     AddAdjacency(crosspoint[i].row[0],crosspoint[i].cross);
     //printf("%d %d\n",crosspoint[i].row[0],crosspoint[i].cross);
     AddAdjacency(crosspoint[i].cross,crosspoint[i].row[0]);
-    
     AddAdjacency(crosspoint[i].column[0],crosspoint[i].cross);
     AddAdjacency(crosspoint[i].cross,crosspoint[i].column[0]);
-    
     AddAdjacency(crosspoint[i].row[1],crosspoint[i].cross);
     AddAdjacency(crosspoint[i].cross,crosspoint[i].row[1]);
-    
     AddAdjacency(crosspoint[i].column[1],crosspoint[i].cross);
     AddAdjacency(crosspoint[i].cross,crosspoint[i].column[1]);
   }
 
-  /*for(i = 0 ; i < 10 ; i++){
+  /*for(i = 0 ; i < 9 ; i++){
     printf("%lf %lf\n",point[i].x,point[i].y);
     }*/
 
   for(i = N ; i < N + k ; i++){
     for(j = N ; j < N + k ; j++){
       if(i == j)continue;
-      if((crosspoint[i].row[0] == crosspoint[j].row[0]) &&
-	 (crosspoint[i].column[0] == crosspoint[j].column[0]) || (crosspoint[i].row[0] == crosspoint[j].row[1]) &&
-	 (crosspoint[i].column[0] == crosspoint[j].column[1]) || (crosspoint[i].row[1] == crosspoint[j].row[0]) &&
-	 (crosspoint[i].column[1] == crosspoint[j].column[0]) || (crosspoint[i].row[1] == crosspoint[j].row[1]) &&
-	 (crosspoint[i].column[1] == crosspoint[j].column[1]))
-	AddAdjacency(crosspoint[i].cross,crosspoint[j].cross);
+      if((crosspoint[i].row[0] == crosspoint[j].row[0]) && (crosspoint[i].column[0] == crosspoint[j].column[0]) || (crosspoint[i].row[0] == crosspoint[j].row[1]) && (crosspoint[i].column[0] == crosspoint[j].column[1]) || (crosspoint[i].row[1] == crosspoint[j].row[0]) && (crosspoint[i].column[1] == crosspoint[j].column[0]) || (crosspoint[i].row[1] == crosspoint[j].row[1]) && (crosspoint[i].column[1] == crosspoint[j].column[1]))AddAdjacency(crosspoint[i].cross,crosspoint[j].cross);
     }
   }
 
+  count = j;
   c = i;
+
+  m = M;
+
+  j = 0;
+  
 
   for(k = 0 ; k < Q ; k++){
     scanf("%s %s %d",S[k],D[k],&K);
     if(S[k][0] == 'C'){
       for(i = 0 ; i < strlen(S[k]) ; i++){
 	S[k][i] = S[k][i + 1];
+	//if(XX[S[k][i]] != NULL)
 	num1 = N + atoi(S[k]);
+	
       }
     }
     else num1 = atoi(S[k]);
@@ -240,78 +236,36 @@ int main(){
       }
     }
     else num2 = atoi(D[k]);
-
-    start = num1 - 1;
-    goal = num2 - 1;
-    
-    if(num1 > c || num2 > c)printf("NA\n");
-    //else if() printf("NA\n");
+    if(num1 > c || num2 > c){
+      NA[j] = 1;
+      j++;
+    }//printf("NA\n");
     else {
       for(i = 0 ; i < 100 ; i++){
 	cost[i] = INF;
 	used[i] = 0;
-	for(j = 0 ; j < 100 ; j++){
-	  via[i][j] = -1;
+	via[i] = -1;
 	}
-      }
-      dijk = dijkstra(start,goal);
-
-      if(dijk == -1){
-      printf("NA\n");
-      continue;
-      }
-      
-      printf("%.5lf\n",dijk);
-      //via print
-
-      
-      /*node = goal;
-      if(start < N)printf("%d",start + 1);
-      else printf("C%d",start - N + 1);
-      while(1){
-	node = via[u][node];
-
-	
-	if(node == start){
-	  if(goal < N)printf(" %d",goal + 1);
-	  else printf(" C%d",goal - N + 1);
-	  break;
-	}
-	else{
-	  if(node < N)printf(" %d", node + 1);
-	  else printf(" C%d",node - N + 1);
-	}
-	
-	}
-
-      u++;
-      printf("\n");*/
-
-      i = 0;
-      node[0] = goal;
-      while(node[i] != start){
-	node[i + 1] = via[u][node[i]];
-	i++;
-      }
-
-      for(j = i ; j >= 0 ; j--){
-	if(j == 0){
-	  if(node[j] + 1 > N){
-	    printf("C%d",node[j] - N + 1);
-	  }
-	  else printf("%d",node[j] + 1);
-	}
-	else if(node[j] + 1 > N){
-	  printf("C%d->",node[j] - N + 1);
-	}
-	else printf("%d->",node[j] + 1);
-      }
-      printf("\n");
-      u++;
-      
+      dijk[j] = dijkstra(num1 - 1,num2 - 1);
+      j++;
+      //printf("%.5lf\n",dijk);
     }
   }
+
+  for(i = 0 ; i < j ; i++){
+    if(NA[i] == 1)printf("NA\n");
+    else printf("%.5lf\n",dijk[i]);
+  }
+  
+  /*for(i = 0 ; i < 9 ; i++){
+    for(j = 0 ; j < 9 ; j++){
+      printf("%.5lf ",Adj[i][j]);
+    }
+    printf("\n");
+    }*/
+
   
   
   return 0;
 }
+
